@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@layer base {
+  :lang(ka) {
+    font-family: 'Your-Georgian-Font', sans-serif;
+  }
+}
