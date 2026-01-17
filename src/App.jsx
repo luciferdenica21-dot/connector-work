@@ -8,12 +8,11 @@ import Services from './components/Services';
 import Contact from './components/Contact';
 import OrderSidebar from './components/OrderSidebar';
 
-
 function App() {
   const { i18n } = useTranslation(); 
   
   const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false); // Новое состояние для авторизации
+  const [isAuthOpen, setIsAuthOpen] = useState(false); // Состояние для окна входа
   
   const [chosenServices, setChosenServices] = useState([]);
   const [tempSelection, setTempSelection] = useState([]);
@@ -23,8 +22,11 @@ function App() {
 
   return (
     <div className={`min-h-screen flex flex-col ${i18n.language === 'ka' ? 'font-georgian' : 'font-sans'}`}>
-      {/* Передаем setIsAuthOpen в Navbar */}
-      <Navbar setIsOrderOpen={setIsOrderOpen} setIsAuthOpen={setIsAuthOpen} />
+      <Navbar 
+        setIsOrderOpen={setIsOrderOpen} 
+        isOrderOpen={isOrderOpen} 
+        setIsAuthOpen={setIsAuthOpen} 
+      />
       
       <main className="flex-grow">
         <Hero />
@@ -45,9 +47,9 @@ function App() {
         brandGradient="bg-gradient-to-r from-blue-600 to-blue-400"
       />
 
-
+      {/* Сюда позже добавим компонент AuthModal, когда будем делать логику Firebase */}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
