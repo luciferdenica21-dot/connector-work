@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import OrderSidebar from './OrderSidebar';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
+import OrderButton from './OrderButton';
 
-const Services = () => {
+const Services = ({ user, setIsAuthOpen }) => {
   const { t, i18n } = useTranslation();
 
   const servicesData = [
@@ -20,10 +23,6 @@ const Services = () => {
 
   const [selectedService, setSelectedService] = useState(null);
   const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const [chosenServices, setChosenServices] = useState([]);
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-  const [tempSelection, setTempSelection] = useState([]);
-
   const [isOpen, setIsOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -43,12 +42,9 @@ const Services = () => {
     i18n.changeLanguage(e.target.value);
   };
 
-  useEffect(() => {
-    if (selectedService) {
-      setChosenServices([selectedService.title]);
-      setTempSelection([selectedService.title]);
-    }
-  }, [selectedService]);
+  const handleLogout = () => {
+    signOut(auth);
+  };
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -70,8 +66,6 @@ const Services = () => {
   const closeModal = () => {
     setSelectedService(null);
     setIsOrderOpen(false);
-    setIsSelectorOpen(false);
-    setChosenServices([]);
     setIsOpen(false);
   };
 
@@ -105,7 +99,7 @@ const Services = () => {
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black flex justify-center items-start animate-fadeIn scrollbar-hide">
           <div className="fixed inset-0 z-0 bg-[#050505]/95 backdrop-blur-3xl" />
 
-          <nav className="bg-[#0a0a0a]/90 backdrop-blur-md fixed top-0 left-0 right-0 z-50 text-white text-sm border-b border-blue-500/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+          <nav className="bg-[#0a0a0a]/90 backdrop-blur-md fixed top-0 left-0 right-0 z-[110] text-white text-sm border-b border-blue-500/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
             <div className="w-full px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-20">
                 <div className="flex items-center z-10">
@@ -124,7 +118,7 @@ const Services = () => {
                       <svg className="w-4 h-4 transition-transform group-hover/dropdown:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-blue-500 transition-all group-hover/dropdown:w-full"></span>
                     </button>
-                    <div className="absolute left-0 mt-2 w-72 bg-[#0a0a0a] border border-blue-500/20 rounded-xl py-4 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 z-[60] shadow-2xl backdrop-blur-xl">
+                    <div className="absolute left-0 mt-2 w-72 bg-[#0a0a0a] border border-blue-500/20 rounded-xl py-4 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 z-[120] shadow-2xl backdrop-blur-xl">
                       {servicesList.map((sKey) => (
                         <button key={sKey} onClick={() => { setSelectedService(servicesData.find(s => s.title === t(sKey))); }} className="block w-full text-left px-6 py-2 text-[10px] uppercase tracking-widest text-white/70 hover:text-blue-400 hover:bg-white/5 transition-colors">{t(sKey)}</button>
                       ))}
@@ -137,108 +131,149 @@ const Services = () => {
                       <svg className="w-4 h-4 transition-transform group-hover/dropdown:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-blue-500 transition-all group-hover/dropdown:w-full"></span>
                     </button>
-                    <div className="absolute left-0 mt-2 w-48 bg-[#0a0a0a] border border-blue-500/20 rounded-xl py-4 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 z-[60] shadow-2xl backdrop-blur-xl">
+                    <div className="absolute left-0 mt-2 w-48 bg-[#0a0a0a] border border-blue-500/20 rounded-xl py-4 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 z-[120] shadow-2xl backdrop-blur-xl">
                       {contactLinks.map((contact) => (
                         <a key={contact.name} href={contact.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-6 py-2 text-[10px] uppercase tracking-widest text-white/70 hover:text-blue-400 hover:bg-white/5 transition-colors">{contact.icon}{contact.name}</a>
                       ))}
                     </div>
                   </div>
 
-                  <button onClick={() => setIsOrderOpen(true)} className="hidden md:block bg-blue-500/10 border border-blue-500/50 text-blue-400 px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">{t("Заказать проект")}</button>
+                  <OrderButton 
+                    user={user} 
+                    setIsOrderOpen={setIsOrderOpen} 
+                    setIsAuthOpen={setIsAuthOpen} 
+                    className="hidden md:block bg-blue-500/10 border border-blue-500/50 text-blue-400 px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all"
+                  />
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
-                  <select onChange={changeLanguage} value={i18n.language} className="bg-transparent border border-blue-500/30 rounded-lg px-2 py-1 outline-none text-xs cursor-pointer"><option value="ru" className="bg-[#0a0a0a]">RU</option><option value="en" className="bg-[#0a0a0a]">ENG</option><option value="ka" className="bg-[#0a0a0a]">GEO</option></select>
-                  
-                  <button className="hidden md:flex items-center gap-2 px-4 py-2 border border-white/10 rounded-lg hover:border-blue-500/50 transition-all group">
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    <span className="text-[10px] font-bold uppercase tracking-widest">{t("Вход")}</span>
-                  </button>
+                  <div className="hidden md:block">
+                    <select onChange={changeLanguage} value={i18n.language} className="bg-transparent border border-blue-500/30 rounded-lg px-2 py-1 outline-none text-xs cursor-pointer"><option value="ru" className="bg-[#0a0a0a]">RU</option><option value="en" className="bg-[#0a0a0a]">ENG</option><option value="ka" className="bg-[#0a0a0a]">GEO</option></select>
+                  </div>
+                  {user ? (
+                    <button onClick={handleLogout} className="hidden md:flex items-center gap-2 px-4 py-2 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-all group">
+                      <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">{t("Выйти")}</span>
+                    </button>
+                  ) : (
+                    <button onClick={() => setIsAuthOpen(true)} className="hidden md:flex items-center gap-2 px-4 py-2 border border-white/10 rounded-lg hover:border-blue-500/50 transition-all group">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">{t("Войти")}</span>
+                    </button>
+                  )}
 
-                  <button onClick={() => { setIsOpen(!isOpen); setIsServicesOpen(false); setIsContactOpen(false); }} className="md:hidden p-2 text-blue-400"><svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg></button>
+                  <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-white p-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <div className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1000px] border-t border-blue-500/20' : 'max-h-0'}`} style={{ backgroundColor: 'rgba(10, 10, 10, 1)' }}>
-              <div className="py-8 px-6 flex flex-col space-y-6">
-                <button onClick={closeModal} className="text-left text-sm font-medium tracking-[0.2em] hover:text-blue-400 transition-all duration-300 hover:translate-x-2 uppercase">{t('ГЛАВНАЯ')}</button>
-                <div className="flex flex-col w-full">
-                  <button onClick={() => setIsServicesOpen(!isServicesOpen)} className="text-sm font-medium tracking-[0.2em] text-blue-400 mb-2 uppercase flex items-center justify-between w-full">{t('УСЛУГИ')}<svg className={`w-4 h-4 transition-transform duration-300 ${isServicesOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg></button>
-                  <div className={`flex flex-col space-y-1 w-full overflow-hidden transition-all duration-500 ease-in-out ${isServicesOpen ? 'max-h-[600px] mt-2 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    {servicesList.map((sKey) => (
-                      <button key={sKey} onClick={() => { setSelectedService(servicesData.find(s => s.title === t(sKey))); setIsOpen(false); }} className="text-left text-[11px] tracking-widest text-white/60 hover:text-blue-400 transition-all duration-300 py-3 px-4 border-l border-blue-500/10 hover:border-blue-500/5 hover:translate-x-2 uppercase">{t(sKey)}</button>
-                    ))}
+              <div className={`md:hidden absolute w-full bg-[#0a0a0a] border-b border-blue-500/20 transition-all duration-300 ease-in-out ${isOpen ? 'max-h-screen opacity-100 visible' : 'max-h-0 opacity-0 invisible'}`}>
+                <div className="px-4 pt-2 pb-6 space-y-1">
+                  <div>
+                    <button onClick={() => setIsServicesOpen(!isServicesOpen)} className="w-full flex items-center justify-between px-3 py-4 text-[10px] font-bold uppercase tracking-widest text-white/70 border-b border-white/5">
+                      {t('УСЛУГИ')}
+                      <svg className={`w-4 h-4 transition-transform ${isServicesOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <div className={`bg-white/5 rounded-xl overflow-hidden transition-all duration-300 ${isServicesOpen ? 'max-h-[500px] my-2' : 'max-h-0'}`}>
+                      {servicesList.map((sKey) => (
+                        <button 
+                          key={sKey} 
+                          onClick={() => { setSelectedService(servicesData.find(s => s.title === t(sKey))); setIsOpen(false); }}
+                          className="block w-full text-left px-6 py-3 text-[9px] uppercase tracking-widest text-white/50 hover:text-blue-400"
+                        >
+                          {t(sKey)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col w-full">
-                  <button onClick={() => setIsContactOpen(!isContactOpen)} className="text-sm font-medium tracking-[0.2em] text-blue-400 mb-2 uppercase flex items-center justify-between w-full">{t('КОНТАКТЫ')}<svg className={`w-4 h-4 transition-transform duration-300 ${isContactOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg></button>
-                  <div className={`flex flex-row justify-center items-center gap-6 w-full overflow-hidden transition-all duration-500 ease-in-out ${isContactOpen ? 'max-h-[100px] mt-4 py-4 border-y border-blue-500/10 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    {contactLinks.map((contact) => (
-                      <a key={contact.name} href={contact.url} target="_blank" rel="noopener noreferrer" className="p-3 text-white/60 hover:text-blue-400 hover:scale-110 transition-all duration-300 bg-white/5 rounded-lg border border-blue-500/5">{contact.icon}</a>
-                    ))}
+                  <div>
+                    <button onClick={() => setIsContactOpen(!isContactOpen)} className="w-full flex items-center justify-between px-3 py-4 text-[10px] font-bold uppercase tracking-widest text-white/70 border-b border-white/5">
+                      {t('КОНТАКТЫ')}
+                      <svg className={`w-4 h-4 transition-transform ${isContactOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <div className={`bg-white/5 rounded-xl overflow-hidden transition-all duration-300 ${isContactOpen ? 'max-h-[500px] my-2' : 'max-h-0'}`}>
+                      {contactLinks.map((contact) => (
+                        <a key={contact.name} href={contact.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-6 py-3 text-[9px] uppercase tracking-widest text-white/50 hover:text-blue-400">{contact.icon}{contact.name}</a>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </nav>
 
-          <div className={`md:hidden fixed inset-x-0 bottom-0 z-40 pointer-events-none transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
-            <div className="max-w-7xl mx-auto px-6 pb-10">
-                <div className="flex justify-between items-center pointer-events-auto">
-                  <button className="w-14 h-14 flex items-center justify-center border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-xl rounded-2xl text-blue-400 shadow-2xl active:scale-90 transition-all">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                  </button>
-                  <button onClick={() => setIsOrderOpen(true)} className="flex items-center gap-3 px-6 py-4 bg-blue-500 border border-blue-400/50 text-white rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-95 transition-all animate-[slideRight_0.6s_ease-out]">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.2em]">{t("Заказать проект")}</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                  </button>
-                </div>
-            </div>
-          </div>
-
-          <div className={`container relative z-10 mx-auto px-4 pb-12 pt-32 flex flex-col items-center transition-all duration-500 ease-in-out ${isOrderOpen ? 'lg:mr-[480px] lg:ml-0' : 'mx-auto'}`}>
-            <div className="max-w-4xl w-full">
-              <div className="mb-8 p-4 md:p-6 rounded-2xl border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.3)] bg-cyan-500/5 backdrop-blur-sm">
-                <h4 className="text-white text-center text-lg md:text-2xl font-light uppercase tracking-[0.2em] leading-tight">
-                  {selectedService.title}
-                </h4>
-              </div>
-
-              <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl mb-10">
-                <img src={selectedService.img} className="w-full h-auto max-h-[400px] object-cover" alt={selectedService.title} />
+          <div className="relative z-10 w-full max-w-5xl mt-32 px-4 pb-32">
+            <div className="flex flex-col gap-8">
+              <div className="relative aspect-video rounded-[3rem] overflow-hidden border border-white/10">
+                <img src={selectedService.img} alt={selectedService.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
               </div>
 
-              <div className="bg-white/[0.03] p-8 md:p-12 rounded-[2rem] border border-white/5 shadow-inner mb-12">
+              <div className="bg-white/[0.03] p-8 md:p-12 rounded-[2rem] border border-white/5 shadow-inner mb-12 flex flex-col items-start gap-8">
                 <div className="text-white/80 text-sm md:text-lg font-light leading-relaxed whitespace-pre-line text-left">
                   {selectedService.fullDesc}
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          <OrderSidebar 
-            isOrderOpen={isOrderOpen}
-            setIsOrderOpen={setIsOrderOpen}
-            servicesData={servicesData}
-            chosenServices={chosenServices}
-            setChosenServices={setChosenServices}
-            tempSelection={tempSelection}
-            setTempSelection={setTempSelection}
-            isSelectorOpen={isSelectorOpen}
-            setIsSelectorOpen={setIsSelectorOpen}
-            brandGradient={brandGradient}
-          />
+      {selectedService && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[120] bg-[#0a0a0a]/95 backdrop-blur-lg border-t border-white/10 px-6 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              {user ? (
+                <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-red-400">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                  <span className="text-[8px] font-bold uppercase">{t("Выйти")}</span>
+                </button>
+              ) : (
+                <button onClick={() => setIsAuthOpen(true)} className="flex flex-col items-center gap-1 text-blue-400">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                  <span className="text-[8px] font-bold uppercase">{t("Войти")}</span>
+                </button>
+              )}
+
+              <div className="flex flex-col items-center gap-1 relative">
+                <svg className="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 11.37 7.31 16.5 3 19" /></svg>
+                <select onChange={changeLanguage} value={i18n.language} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                  <option value="ru">RU</option>
+                  <option value="en">EN</option>
+                  <option value="ka">KA</option>
+                </select>
+                <span className="text-[8px] font-bold uppercase text-white/70">{i18n.language.toUpperCase()}</span>
+              </div>
+            </div>
+
+            <OrderButton 
+              user={user} 
+              setIsOrderOpen={setIsOrderOpen} 
+              setIsAuthOpen={setIsAuthOpen} 
+              className="bg-blue-600 text-white px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-blue-500/40 active:scale-95 transition-transform"
+            />
+
+            <button onClick={closeModal} className="flex flex-col items-center gap-1 text-white/70">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span className="text-[8px] font-bold uppercase tracking-tighter">{t('ГЛАВНАЯ')}</span>
+            </button>
+          </div>
         </div>
       )}
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideRight { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}</style>
+
+      <OrderSidebar 
+        isOrderOpen={isOrderOpen} 
+        setIsOrderOpen={setIsOrderOpen} 
+        user={user} 
+        setIsAuthOpen={setIsAuthOpen}
+        brandGradient={brandGradient}
+      />
     </section>
   );
 };
