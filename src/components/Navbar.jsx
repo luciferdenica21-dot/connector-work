@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import OrderSidebar from './OrderSidebar';
-import { auth, db } from '../firebase'; 
-import { signOut } from 'firebase/auth'; 
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import OrderButton from './OrderButton';
 
-const Navbar = ({ setIsOrderOpen, isOrderOpen, setIsAuthOpen, user }) => {
+const Navbar = ({ setIsOrderOpen, isOrderOpen, setIsAuthOpen, user, onLogout }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -55,8 +52,13 @@ const Navbar = ({ setIsOrderOpen, isOrderOpen, setIsAuthOpen, user }) => {
     }
   };
 
+  const navigate = useNavigate();
+  
   const handleLogout = () => {
-    signOut(auth);
+    if (onLogout) {
+      onLogout();
+    }
+    navigate('/');
   };
 
   return (
@@ -125,10 +127,18 @@ const Navbar = ({ setIsOrderOpen, isOrderOpen, setIsAuthOpen, user }) => {
               </div>
 
               {user ? (
-                <button onClick={handleLogout} className="hidden md:flex items-center gap-2 px-4 py-2 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-all group">
-                  <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">{t("Выйти")}</span>
-                </button>
+                <>
+                  {user.role !== 'admin' && (
+                    <button onClick={() => navigate('/dashboard')} className="hidden md:flex items-center gap-2 px-4 py-2 border border-blue-500/30 rounded-lg hover:bg-blue-500/10 transition-all group">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Кабинет</span>
+                    </button>
+                  )}
+                  <button onClick={handleLogout} className="hidden md:flex items-center gap-2 px-4 py-2 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-all group">
+                    <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">{t("Выйти")}</span>
+                  </button>
+                </>
               ) : (
                 <button onClick={() => setIsAuthOpen(true)} className="hidden md:flex items-center gap-2 px-4 py-2 border border-white/10 rounded-lg hover:border-blue-500/50 transition-all group">
                   <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -182,15 +192,22 @@ const Navbar = ({ setIsOrderOpen, isOrderOpen, setIsAuthOpen, user }) => {
         </div>
       </nav>
 
-      {/* Мобильная нижняя панель */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-lg border-t border-white/10 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             {user ? (
-              <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-red-400">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                <span className="text-[8px] font-bold uppercase">{t("Выйти")}</span>
-              </button>
+              <>
+                {user.role !== 'admin' && (
+                  <button onClick={() => navigate('/dashboard')} className="flex flex-col items-center gap-1 text-blue-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    <span className="text-[8px] font-bold uppercase">Кабинет</span>
+                  </button>
+                )}
+                <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-red-400">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                  <span className="text-[8px] font-bold uppercase">{t("Выйти")}</span>
+                </button>
+              </>
             ) : (
               <button onClick={() => setIsAuthOpen(true)} className="flex flex-col items-center gap-1 text-blue-400">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>

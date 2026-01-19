@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import OrderSidebar from './OrderSidebar';
-import { auth } from '../firebase';
-import { signOut } from 'firebase/auth';
 import OrderButton from './OrderButton';
 
-const Services = ({ user, setIsAuthOpen }) => {
+const Services = ({ user, setIsAuthOpen, onLogout }) => {
   const { t, i18n } = useTranslation();
 
   const servicesData = [
@@ -42,8 +41,13 @@ const Services = ({ user, setIsAuthOpen }) => {
     i18n.changeLanguage(e.target.value);
   };
 
+  const navigate = useNavigate();
+  
   const handleLogout = () => {
-    signOut(auth);
+    if (onLogout) {
+      onLogout();
+    }
+    navigate('/');
   };
 
   useEffect(() => {
@@ -151,10 +155,16 @@ const Services = ({ user, setIsAuthOpen }) => {
                     <select onChange={changeLanguage} value={i18n.language} className="bg-transparent border border-blue-500/30 rounded-lg px-2 py-1 outline-none text-xs cursor-pointer"><option value="ru" className="bg-[#0a0a0a]">RU</option><option value="en" className="bg-[#0a0a0a]">ENG</option><option value="ka" className="bg-[#0a0a0a]">GEO</option></select>
                   </div>
                   {user ? (
-                    <button onClick={handleLogout} className="hidden md:flex items-center gap-2 px-4 py-2 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-all group">
-                      <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">{t("Выйти")}</span>
-                    </button>
+                    <>
+                      <button onClick={() => navigate('/dashboard')} className="hidden md:flex items-center gap-2 px-4 py-2 border border-blue-500/30 rounded-lg hover:bg-blue-500/10 transition-all group">
+                        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Кабинет</span>
+                      </button>
+                      <button onClick={handleLogout} className="hidden md:flex items-center gap-2 px-4 py-2 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-all group">
+                        <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">{t("Выйти")}</span>
+                      </button>
+                    </>
                   ) : (
                     <button onClick={() => setIsAuthOpen(true)} className="hidden md:flex items-center gap-2 px-4 py-2 border border-white/10 rounded-lg hover:border-blue-500/50 transition-all group">
                       <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -225,10 +235,16 @@ const Services = ({ user, setIsAuthOpen }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               {user ? (
-                <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-red-400">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                  <span className="text-[8px] font-bold uppercase">{t("Выйти")}</span>
-                </button>
+                <>
+                  <button onClick={() => navigate('/dashboard')} className="flex flex-col items-center gap-1 text-blue-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    <span className="text-[8px] font-bold uppercase">Кабинет</span>
+                  </button>
+                  <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-red-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    <span className="text-[8px] font-bold uppercase">{t("Выйти")}</span>
+                  </button>
+                </>
               ) : (
                 <button onClick={() => setIsAuthOpen(true)} className="flex flex-col items-center gap-1 text-blue-400">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>

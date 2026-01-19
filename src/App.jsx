@@ -11,9 +11,8 @@ import OrderSidebar from './components/OrderSidebar';
 import AuthModal from './components/AuthModal';
 import ChatWidget from './components/ChatWidget';
 import ManagerPanel from './components/ManagerPanel';
-import { auth, db } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import ClientDashboard from './components/ClientDashboard';
+import { authAPI, getToken, removeToken } from './config/api';
 
 function App() {
   const { i18n } = useTranslation(); 
@@ -24,27 +23,40 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-          if (userDoc.exists()) {
-            setUserRole(userDoc.data().role);
-          } else {
-            setUserRole('user');
-          }
-        } catch (error) {
-          console.error("Role fetch error:", error);
-          setUserRole('user');
-        }
-      } else {
-        setUserRole(null);
+    const checkAuth = async () => {
+      const token = getToken();
+      if (!token) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    });
-    return () => unsubscribe();
+
+      try {
+        const userData = await authAPI.getMe();
+        setUser(userData);
+        setUserRole(userData.role);
+      } catch (error) {
+        // Token invalid, remove it
+        removeToken();
+        setUser(null);
+        setUserRole(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
+
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+    setUserRole(userData.role);
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    setUser(null);
+    setUserRole(null);
+  };
 
   if (loading) return (
     <div style={{ background: '#050a18', color: 'white', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -58,17 +70,21 @@ function App() {
         setIsOrderOpen={setIsOrderOpen} 
         isOrderOpen={isOrderOpen} 
         setIsAuthOpen={setIsAuthOpen}
-        user={user} 
+        user={user}
+        onLogout={handleLogout}
       />
       <main className="flex-grow">
         <Hero />
-        <Services user={user} setIsAuthOpen={setIsAuthOpen} setIsOrderOpen={setIsOrderOpen} />
+        <Services user={user} setIsAuthOpen={setIsAuthOpen} setIsOrderOpen={setIsOrderOpen} onLogout={handleLogout} />
         <Contact />
       </main>
       
-      {!user && <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />}
+      <AuthModal 
+        isOpen={isAuthOpen} 
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
       
-      {/* ИСПРАВЛЕНИЕ: Теперь передаем user, чтобы Sidebar видел авторизацию */}
       <OrderSidebar 
         isOrderOpen={isOrderOpen} 
         setIsOrderOpen={setIsOrderOpen} 
@@ -88,7 +104,17 @@ function App() {
           path="/manager" 
           element={
             user && userRole === 'admin' ? (
-              <ManagerPanel />
+              <ManagerPanel user={user} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            user && userRole === 'user' ? (
+              <ClientDashboard user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/" replace />
             )
