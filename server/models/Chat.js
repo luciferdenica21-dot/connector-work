@@ -49,7 +49,7 @@ const chatSchema = new mongoose.Schema({
   }
 });
 
-chatSchema.index({ userId: 1 });
+// Удален дублирующий индекс для userId, так как unique: true выше уже создает его
 chatSchema.index({ lastUpdate: -1 });
 
 export default mongoose.model('Chat', chatSchema);
